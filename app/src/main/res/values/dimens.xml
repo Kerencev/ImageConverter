@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="item_gallery_padding_root">1dp</dimen>
+    <dimen name="activity_main_text_size_all_photos">20sp</dimen>
+    <dimen name="activity_main_padding_tv_all_photo">12dp</dimen>
+</resources>
