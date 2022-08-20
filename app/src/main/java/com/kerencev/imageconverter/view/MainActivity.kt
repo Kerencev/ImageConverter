@@ -2,9 +2,12 @@ package com.kerencev.imageconverter.view
 
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.snackbar.Snackbar
+import com.kerencev.imageconverter.R
 import com.kerencev.imageconverter.databinding.ActivityMainBinding
 import com.kerencev.imageconverter.model.repository.PhotoRepositoryImpl
 import com.kerencev.imageconverter.presenter.MainPresenter
@@ -22,16 +25,28 @@ class MainActivity : MvpAppCompatActivity(), MainView {
             PhotoRepositoryImpl()
         )
     }
+    private var isClickableRecycler = true
     private val adapter = GalleryAdapter(object : OnItemClick {
         override fun onClick(path: String) {
-            Toast.makeText(this@MainActivity, path, Toast.LENGTH_SHORT).show()
+            if (isClickableRecycler) {
+                isClickableRecycler = false
+                Log.d("Recycler", "click")
+                presenter.convertImage(path)
+            }
         }
     })
+    private lateinit var snackbar: Snackbar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.rvGallery.adapter = adapter
+        snackbar = Snackbar.make(binding.root, "", Snackbar.LENGTH_INDEFINITE)
+            .setAction(R.string.cancel) {
+                presenter.disposeConvert()
+                isClickableRecycler = true
+            }
     }
 
     override fun checkPermission() {
@@ -50,9 +65,26 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         }
     }
 
+    override fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun showSnackBar(path: String) {
+        snackbar.setText("${resources.getString(R.string.converting)}\n$path")
+        snackbar.show()
+    }
+
+    override fun hideSnackBar() {
+        snackbar.dismiss()
+        isClickableRecycler = true
+    }
+
+    override fun setClickableRecycler(boolean: Boolean) {
+        binding.rvGallery.isClickable = boolean
+    }
+
     override fun initList(listOfPhotos: List<String>) = with(binding) {
-        tvAllPhotos.append(" ${listOfPhotos.size}")
-        rvGallery.adapter = adapter
+        tvAllPhotos.text = "${resources.getString(R.string.all_photos)} ${listOfPhotos.size}"
         adapter.setData(listOfPhotos)
     }
 

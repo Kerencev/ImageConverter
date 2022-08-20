@@ -12,7 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="@string/all_photos"
         android:padding="@dimen/activity_main_padding_tv_all_photo"
         android:textSize="@dimen/activity_main_text_size_all_photos" />
 
