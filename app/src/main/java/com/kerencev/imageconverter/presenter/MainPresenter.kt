@@ -4,10 +4,11 @@ import android.content.Context
 import android.util.Log
 import com.kerencev.imageconverter.model.repository.PhotoRepository
 import com.kerencev.imageconverter.utils.Converter
+import com.kerencev.imageconverter.utils.disposeBy
+import com.kerencev.imageconverter.utils.subscribeByDefault
 import com.kerencev.imageconverter.view.MainView
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
-import io.reactivex.rxjava3.schedulers.Schedulers
 import moxy.MvpPresenter
 
 class MainPresenter(
@@ -15,6 +16,7 @@ class MainPresenter(
     private val repository: PhotoRepository
 ) : MvpPresenter<MainView>() {
 
+    private val bag = CompositeDisposable()
     private var disposable: Disposable? = null
 
     override fun onFirstViewAttach() {
@@ -24,39 +26,43 @@ class MainPresenter(
 
     fun loadImages() {
         repository.getImagesFromGallery(context)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeByDefault()
             .subscribe(
                 {
                     viewState.initList(it)
                 },
                 {
-                    Log.d("getImagesFromGallery", "${it.message}")
+                    Log.d("getImagesFromGallery", "${it.stackTrace}")
+                }
+            ).disposeBy(bag)
+    }
+
+    fun convertImage(path: String) {
+        viewState.showSnackBar(path)
+        disposable = Converter.convertImage(context, path)
+            .flatMap {
+                Converter.saveImage(context, it).toSingle {}
+            }
+            .subscribeByDefault()
+            .subscribe(
+                {
+                    loadImages()
+                    viewState.hideSnackBar()
+                },
+                {
+                    Log.d("convertImage", "${it.stackTrace}")
+                    viewState.hideSnackBar()
                 }
             )
     }
 
-    fun convertImage(path: String) {
-        disposable = Converter.convertImage(context, path)
-            .subscribeOn(Schedulers.io())
-            .doOnSuccess {
-                Converter.saveImage(context, it)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .doOnComplete {
-                        loadImages()
-                        viewState.hideSnackBar()
-                    }
-                    .subscribe()
-            }
-            .doOnError {
-                Log.d("ConverterSingle", "${it.message}")
-                viewState.hideSnackBar()
-            }
-            .subscribe()
-        viewState.showSnackBar(path)
-    }
-
     fun disposeConvert() {
         disposable?.dispose()
+    }
+
+    override fun onDestroy() {
+        disposable?.dispose()
+        bag.dispose()
+        super.onDestroy()
     }
 }

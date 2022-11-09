@@ -1,8 +1,8 @@
 package com.kerencev.imageconverter.view
 
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -30,7 +30,6 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         override fun onClick(path: String) {
             if (isClickableRecycler) {
                 isClickableRecycler = false
-                Log.d("Recycler", "click")
                 presenter.convertImage(path)
             }
         }
@@ -83,6 +82,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         binding.rvGallery.isClickable = boolean
     }
 
+    @SuppressLint("SetTextI18n")
     override fun initList(listOfPhotos: List<String>) = with(binding) {
         tvAllPhotos.text = "${resources.getString(R.string.all_photos)} ${listOfPhotos.size}"
         adapter.setData(listOfPhotos)

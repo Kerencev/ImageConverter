@@ -5,8 +5,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.kerencev.imageconverter.R
+import com.kerencev.imageconverter.utils.load
 
 interface OnItemClick {
     fun onClick(path: String)
@@ -39,7 +39,7 @@ class GalleryAdapter(private val onItemClick: OnItemClick) :
         private val imgPhoto = view.findViewById<ImageView>(R.id.img)
 
         fun bind(path: String) {
-            Glide.with(view.context).load(path).into(imgPhoto)
+            imgPhoto.load(path)
             view.setOnClickListener {
                 onItemClick.onClick(path)
             }
