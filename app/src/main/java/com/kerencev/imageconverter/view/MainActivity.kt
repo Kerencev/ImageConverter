@@ -21,7 +21,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
     private lateinit var binding: ActivityMainBinding
     private val presenter: MainPresenter by moxyPresenter {
         MainPresenter(
-            this,
+            contentResolver,
             PhotoRepositoryImpl()
         )
     }

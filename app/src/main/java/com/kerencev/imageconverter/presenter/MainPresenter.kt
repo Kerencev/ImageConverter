@@ -1,9 +1,8 @@
 package com.kerencev.imageconverter.presenter
 
-import android.content.Context
+import android.content.ContentResolver
 import android.util.Log
 import com.kerencev.imageconverter.model.repository.PhotoRepository
-import com.kerencev.imageconverter.utils.Converter
 import com.kerencev.imageconverter.utils.disposeBy
 import com.kerencev.imageconverter.utils.subscribeByDefault
 import com.kerencev.imageconverter.view.MainView
@@ -12,7 +11,7 @@ import io.reactivex.rxjava3.disposables.Disposable
 import moxy.MvpPresenter
 
 class MainPresenter(
-    private val context: Context,
+    private val contentResolver: ContentResolver,
     private val repository: PhotoRepository
 ) : MvpPresenter<MainView>() {
 
@@ -25,7 +24,7 @@ class MainPresenter(
     }
 
     fun loadImages() {
-        repository.getImagesFromGallery(context)
+        repository.getImagesFromGallery(contentResolver)
             .subscribeByDefault()
             .subscribe(
                 {
@@ -39,9 +38,9 @@ class MainPresenter(
 
     fun convertImage(path: String) {
         viewState.showSnackBar(path)
-        disposable = Converter.convertImage(context, path)
+        disposable = repository.convertImage(contentResolver, path)
             .flatMap {
-                Converter.saveImage(context, it).toSingle {}
+                repository.saveImage(contentResolver, it).toSingle {}
             }
             .subscribeByDefault()
             .subscribe(
